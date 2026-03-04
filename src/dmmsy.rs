@@ -48,6 +48,7 @@ struct Workspace {
     dirty_d: Vec<u32>,
     ds_cnt: u32,
     piv_bufs: Vec<Vec<u32>>,
+    #[allow(dead_code)]
     n: u32,
 }
 
@@ -70,6 +71,7 @@ impl Workspace {
         }
     }
 
+    #[allow(dead_code)]
     fn prepare(&mut self, n: u32, p: &Params) {
         if self.n != n {
             *self = Self::new(n, p);
@@ -142,6 +144,7 @@ pub fn dmmsy(graph: &CsrGraph<f64>, source: u32) -> ShortestPaths<f64> {
 ///
 /// Adapted from danalec's `bmsp_rec` in `dmmsy_opt.rs`.
 #[inline(always)]
+#[allow(clippy::too_many_arguments)]
 fn bmsp_rec(
     g: &CsrGraph<f64>,
     src_buf_lvl: usize,

@@ -73,7 +73,7 @@ impl Fast4AryHeap {
             let mut mc_node = self.nodes[c1 as usize];
             let mut mcv = mc_node.v;
 
-            if c1 + 1 <= sz && self.nodes[(c1 + 1) as usize].v < mcv {
+            if c1 < sz && self.nodes[c1 as usize + 1].v < mcv {
                 mc = c1 + 1;
                 mc_node = self.nodes[mc as usize];
                 mcv = mc_node.v;

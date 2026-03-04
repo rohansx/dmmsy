@@ -7,6 +7,7 @@
 //! Adapted from danalec's `CSRGraph` in DMMSY-SSSP-rs with added
 //! generic weights, builder API, and petgraph integration support.
 
+use crate::error::DmmsyError;
 use crate::weight::Weight;
 
 /// A single directed edge (target, weight).
@@ -107,6 +108,29 @@ impl<W: Weight> CsrGraph<W> {
             edges: csr_edges,
             mean_weight,
         }
+    }
+
+    /// Build a CSR graph from an edge list, returning an error on invalid input.
+    ///
+    /// Like [`from_edges`](Self::from_edges), but returns
+    /// [`DmmsyError::EdgeOutOfBounds`] instead of panicking when an edge
+    /// references a node `>= num_nodes`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use dmmsy::CsrGraph;
+    ///
+    /// // Valid edges succeed
+    /// let graph = CsrGraph::try_from_edges(3, &[(0, 1, 1.0_f64), (1, 2, 2.0)]).unwrap();
+    /// assert_eq!(graph.num_nodes(), 3);
+    ///
+    /// // Out-of-bounds edge returns an error
+    /// assert!(CsrGraph::try_from_edges(3, &[(0, 99, 1.0_f64)]).is_err());
+    /// ```
+    pub fn try_from_edges(num_nodes: usize, edges: &[(u32, u32, W)]) -> Result<Self, DmmsyError> {
+        crate::error::validate_edges(num_nodes, edges)?;
+        Ok(Self::from_edges(num_nodes, edges))
     }
 
     /// Iterate over the neighbors of `node`, yielding `(target, weight)` pairs.

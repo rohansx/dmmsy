@@ -63,6 +63,7 @@
 //!
 //! The [`shortest_paths`] function auto-selects based on graph characteristics.
 
+pub mod error;
 pub mod graph;
 pub mod weight;
 pub mod heap;
@@ -72,6 +73,7 @@ pub mod dimacs;
 pub mod petgraph_compat;
 
 // Re-exports for convenient top-level access
+pub use error::DmmsyError;
 pub use graph::CsrGraph;
 pub use weight::Weight;
 pub use dijkstra::ShortestPaths;
@@ -110,6 +112,33 @@ pub fn shortest_paths<W: Weight>(graph: &CsrGraph<W>, source: u32) -> ShortestPa
     dijkstra::dijkstra(graph, source)
 }
 
+/// Like [`shortest_paths`], but returns a `Result` instead of panicking.
+///
+/// Returns [`DmmsyError::SourceOutOfBounds`] if `source >= graph.num_nodes()`,
+/// or [`DmmsyError::EmptyGraph`] if the graph has zero nodes.
+///
+/// # Example
+///
+/// ```
+/// use dmmsy::{CsrGraph, try_shortest_paths};
+///
+/// let graph = CsrGraph::from_edges(3, &[
+///     (0, 1, 1.0_f64), (1, 2, 2.0),
+/// ]);
+/// let result = try_shortest_paths(&graph, 0).unwrap();
+/// assert_eq!(result.distances[2], 3.0);
+///
+/// // Out-of-bounds source returns an error instead of panicking
+/// assert!(try_shortest_paths(&graph, 99).is_err());
+/// ```
+pub fn try_shortest_paths<W: Weight>(
+    graph: &CsrGraph<W>,
+    source: u32,
+) -> Result<ShortestPaths<W>, DmmsyError> {
+    error::validate_source(graph, source)?;
+    Ok(dijkstra::dijkstra(graph, source))
+}
+
 /// Compute shortest paths with auto-selection between DMMSY and Dijkstra.
 ///
 /// Uses DMMSY for large sparse graphs, Dijkstra otherwise.
@@ -133,6 +162,39 @@ pub fn shortest_paths_f64(graph: &CsrGraph<f64>, source: u32) -> ShortestPaths<f
         dijkstra::dijkstra(graph, source)
     } else {
         dmmsy::dmmsy(graph, source)
+    }
+}
+
+/// Like [`shortest_paths_f64`], but returns a `Result` instead of panicking.
+///
+/// Returns [`DmmsyError::SourceOutOfBounds`] if `source >= graph.num_nodes()`,
+/// or [`DmmsyError::EmptyGraph`] if the graph has zero nodes.
+///
+/// # Example
+///
+/// ```
+/// use dmmsy::{CsrGraph, try_shortest_paths_f64};
+///
+/// let graph = CsrGraph::from_edges(3, &[
+///     (0, 1, 1.0_f64), (1, 2, 2.0),
+/// ]);
+/// let result = try_shortest_paths_f64(&graph, 0).unwrap();
+/// assert_eq!(result.distances[2], 3.0);
+///
+/// // Out-of-bounds source returns an error instead of panicking
+/// assert!(try_shortest_paths_f64(&graph, 99).is_err());
+/// ```
+pub fn try_shortest_paths_f64(
+    graph: &CsrGraph<f64>,
+    source: u32,
+) -> Result<ShortestPaths<f64>, DmmsyError> {
+    error::validate_source(graph, source)?;
+    let n = graph.num_nodes();
+
+    if n < 1024 || graph.density() > 0.25 {
+        Ok(dijkstra::dijkstra(graph, source))
+    } else {
+        Ok(dmmsy::dmmsy(graph, source))
     }
 }
 
@@ -168,5 +230,44 @@ mod tests {
         assert_eq!(result.distances[2], 1.0);
         assert_eq!(result.distances[3], 3.0);
         assert_eq!(result.distances[4], 5.0);
+    }
+
+    #[test]
+    fn try_shortest_paths_source_out_of_bounds() {
+        let g = CsrGraph::from_edges(3, &[(0, 1, 1.0_f64)]);
+        let err = try_shortest_paths(&g, 10).unwrap_err();
+        assert!(matches!(err, DmmsyError::SourceOutOfBounds { source: 10, num_nodes: 3 }));
+    }
+
+    #[test]
+    fn try_shortest_paths_empty_graph() {
+        let g: CsrGraph<f64> = CsrGraph::from_edges(0, &[]);
+        let err = try_shortest_paths(&g, 0).unwrap_err();
+        assert!(matches!(err, DmmsyError::EmptyGraph));
+    }
+
+    #[test]
+    fn try_shortest_paths_f64_source_out_of_bounds() {
+        let g = CsrGraph::from_edges(3, &[(0, 1, 1.0_f64)]);
+        let err = try_shortest_paths_f64(&g, 10).unwrap_err();
+        assert!(matches!(err, DmmsyError::SourceOutOfBounds { source: 10, num_nodes: 3 }));
+    }
+
+    #[test]
+    fn try_shortest_paths_success() {
+        let g = CsrGraph::from_edges(3, &[
+            (0, 1, 1.0_f64), (1, 2, 2.0),
+        ]);
+        let result = try_shortest_paths(&g, 0).unwrap();
+        assert_eq!(result.distances[2], 3.0);
+    }
+
+    #[test]
+    fn try_shortest_paths_f64_success() {
+        let g = CsrGraph::from_edges(3, &[
+            (0, 1, 1.0_f64), (1, 2, 2.0),
+        ]);
+        let result = try_shortest_paths_f64(&g, 0).unwrap();
+        assert_eq!(result.distances[2], 3.0);
     }
 }

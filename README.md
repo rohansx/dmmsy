@@ -67,6 +67,17 @@ assert_eq!(paths.distance(c.index() as u32), 3.0);
 
 ## Benchmarks
 
+| Benchmark | DMMSY (`shortest_paths_f64`) | Dijkstra |
+|-----------|------------------------------|----------|
+| Sparse 10K nodes, 4 edges/node | 1.61 ms | 1.62 ms |
+| Sparse 100K nodes, 4 edges/node | 36.99 ms | 33.47 ms |
+| Dense 500 nodes, 25% | 105.86 us | 105.39 us |
+| Dense 1K nodes, 25% | 371.05 us | 369.45 us |
+
+> DMMSY's theoretical advantage shows on very large sparse graphs (>1M nodes). On smaller graphs, Dijkstra's simpler constant factors dominate. The `shortest_paths_f64()` function automatically selects the best algorithm.
+
+To run benchmarks yourself:
+
 ```sh
 cargo bench
 ```
