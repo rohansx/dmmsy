@@ -103,6 +103,4 @@ petgraph integration, generic weights, and documentation.
 - **Rust implementation:** [danalec/DMMSY-SSSP-rs](https://github.com/danalec/DMMSY-SSSP-rs)
 - **C99 implementation:** [danalec/DMMSY-SSSP](https://github.com/danalec/DMMSY-SSSP)
 
-## License
 
-MIT OR Apache-2.0
