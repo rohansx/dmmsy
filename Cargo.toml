@@ -1,0 +1,30 @@
+[package]
+name = "dmmsy"
+version = "0.1.0"
+edition = "2021"
+description = "DMMSY shortest path — first to break Dijkstra's 66-year O(m + n log n) barrier. Drop-in petgraph integration."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/rohanxyz/dmmsy"
+keywords = ["graph", "shortest-path", "algorithm", "dijkstra", "sssp"]
+categories = ["algorithms", "science"]
+rust-version = "1.70"
+
+[features]
+default = ["std"]
+std = []
+petgraph = ["dep:petgraph"]
+serde = ["dep:serde"]
+
+[dependencies]
+petgraph = { version = "0.6", optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+petgraph = "0.6"
+rand = "0.8"
+rand_xoshiro = "0.6"
+
+[[bench]]
+name = "comparison"
+harness = false

@@ -1,0 +1,10 @@
+/target
+Cargo.lock
+
+# DIMACS road network data (large binary files)
+data/*.gr
+data/*.co
+data/*.gz
+
+# Benchmark results (regenerate with `cargo bench`)
+target/criterion/
