@@ -49,13 +49,11 @@ assert_eq!(paths.distance(c.index() as u32), 3.0);
 
 ## Demo
 
-[![asciicast](https://asciinema.org/a/placeholder.svg)](https://asciinema.org/a/placeholder)
+![demo](demo.gif)
 
 Run it locally:
 ```sh
 ./demo.sh
-# or record with asciinema:
-asciinema play demo.cast
 ```
 
 ## When to use DMMSY vs Dijkstra
